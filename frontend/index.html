@@ -4,10 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wi-Fi Human Monitoring Dashboard</title>
+
+    <title>Wi-Fi Human Monitoring System</title>
 
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -22,11 +25,17 @@
             padding: 24px 5%;
         }
 
-        header h1 { margin: 0 0 8px; }
-        header p { margin: 0; color: #cbd5e1; }
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        header p {
+            margin: 0;
+            color: #cbd5e1;
+        }
 
         main {
-            max-width: 1200px;
+            max-width: 1250px;
             margin: 25px auto;
             padding: 0 20px;
         }
@@ -37,6 +46,7 @@
             border-radius: 10px;
             padding: 14px;
             margin-bottom: 20px;
+            line-height: 1.6;
         }
 
         .summary {
@@ -51,15 +61,28 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 3px 12px #14213d0d;
+            margin-bottom: 22px;
         }
 
-        .card h3 {
+        .card h2 {
+            margin-top: 0;
+            color: #14213d;
+        }
+
+        .summary .card {
+            margin-bottom: 0;
+        }
+
+        .summary .card h3 {
             margin: 0 0 12px;
             font-size: 14px;
             color: #64748b;
         }
 
-        .number { font-size: 30px; font-weight: bold; }
+        .number {
+            font-size: 30px;
+            font-weight: bold;
+        }
 
         .toolbar {
             display: flex;
@@ -68,14 +91,24 @@
             margin-bottom: 15px;
         }
 
-        input, select, button {
+        input,
+        select,
+        button {
             padding: 11px 13px;
             border-radius: 8px;
             font-size: 14px;
         }
 
-        input, select { border: 1px solid #cbd5e1; background: white; }
-        input { flex: 1; min-width: 180px; }
+        input,
+        select {
+            border: 1px solid #cbd5e1;
+            background: white;
+        }
+
+        input {
+            flex: 1;
+            min-width: 180px;
+        }
 
         button {
             border: none;
@@ -84,9 +117,90 @@
             cursor: pointer;
         }
 
-        button:hover { background: #1d4ed8; }
+        button:hover {
+            background: #1d4ed8;
+        }
 
-        .table-wrap { overflow-x: auto; }
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        /* Campus zone overview */
+
+        .zone-intro {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .zone-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(220px, 1fr)
+            );
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .zone-card {
+            background: #f8fafc;
+            border: 1px solid #dbe3ef;
+            border-radius: 12px;
+            padding: 18px;
+            min-width: 0;
+        }
+
+        .zone-card h3 {
+            margin: 0 0 12px;
+            font-size: 17px;
+            overflow-wrap: anywhere;
+        }
+
+        .zone-label {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .zone-count {
+            font-size: 26px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .zone-detail {
+            font-size: 13px;
+            margin: 8px 0;
+            color: #475569;
+        }
+
+        .zone-status {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #166534;
+            background: #dcfce7;
+            padding: 6px 9px;
+            border-radius: 20px;
+        }
+
+        .empty-zone {
+            color: #64748b;
+            padding: 15px 0;
+        }
+
+        /* Device table */
+
+        .table-wrap {
+            overflow-x: auto;
+        }
 
         table {
             width: 100%;
@@ -94,14 +208,19 @@
             background: white;
         }
 
-        th, td {
+        th,
+        td {
             text-align: left;
             padding: 14px 12px;
             border-bottom: 1px solid #e2e8f0;
             font-size: 14px;
         }
 
-        th { color: #64748b; background: #f8fafc; }
+        th {
+            color: #64748b;
+            background: #f8fafc;
+            white-space: nowrap;
+        }
 
         .status {
             display: inline-block;
@@ -111,32 +230,78 @@
             font-weight: bold;
         }
 
-        .connected { color: #166534; background: #dcfce7; }
-        .disconnected { color: #991b1b; background: #fee2e2; }
+        .connected {
+            color: #166534;
+            background: #dcfce7;
+        }
 
-        #message { color: #64748b; font-size: 13px; }
+        .disconnected {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        #message {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            color: #b91c1c !important;
+        }
 
         footer {
             text-align: center;
             padding: 25px;
             color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 22px 18px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            main {
+                padding: 0 12px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            th,
+            td {
+                padding: 11px 9px;
+            }
         }
     </style>
 </head>
 
 <body>
+
     <header>
         <h1>Wi-Fi Human Monitoring System</h1>
         <p>Campus Device Monitoring Dashboard</p>
     </header>
 
     <main>
+
         <div class="notice">
-            DEMO MODE: The devices and zones below are sample data,
-            not actual college Wi-Fi devices or verified locations.
+            <strong>DEMO MODE:</strong>
+            Devices and zone information currently come from sample
+            backend data. They do not represent actual college Wi-Fi
+            devices or verified indoor locations.
         </div>
 
+        <!-- Summary cards -->
+
         <section class="summary">
+
             <div class="card">
                 <h3>Total Devices</h3>
                 <div class="number" id="total">0</div>
@@ -154,28 +319,68 @@
 
             <div class="card">
                 <h3>Data Source</h3>
-                <div class="number" style="font-size:18px">DEMO API</div>
+                <div class="number" style="font-size: 18px">
+                    DEMO API
+                </div>
             </div>
+
         </section>
 
+        <!-- Campus zone overview -->
+
         <section class="card">
+
+            <h2>Campus Zone Overview</h2>
+
+            <p class="zone-intro">
+                Device distribution grouped by the zone information
+                returned by the backend. Disconnected devices are
+                grouped separately because their current location
+                cannot be confirmed from this demo data.
+            </p>
+
+            <div id="zoneGrid" class="zone-grid">
+                <p class="empty-zone">Loading zone information...</p>
+            </div>
+
+        </section>
+
+        <!-- Device monitoring table -->
+
+        <section class="card">
+
             <h2>Device Monitor</h2>
 
             <div class="toolbar">
-                <input id="search" placeholder="Search device ID or zone">
 
-                <select id="statusFilter">
+                <input
+                    id="search"
+                    type="search"
+                    placeholder="Search device ID or zone..."
+                    aria-label="Search device ID or zone"
+                >
+
+                <select
+                    id="statusFilter"
+                    aria-label="Filter by device status"
+                >
                     <option value="All">All statuses</option>
                     <option value="Connected">Connected</option>
                     <option value="Disconnected">Disconnected</option>
                 </select>
 
-                <button id="refreshButton">Refresh Now</button>
+                <button id="refreshButton" type="button">
+                    Refresh Now
+                </button>
+
             </div>
 
-            <p id="message">Connecting to backend...</p>
+            <p id="message" aria-live="polite">
+                Connecting to backend...
+            </p>
 
             <div class="table-wrap">
+
                 <table>
                     <thead>
                         <tr>
@@ -186,102 +391,271 @@
                             <th>Last Seen</th>
                         </tr>
                     </thead>
+
                     <tbody id="deviceTable"></tbody>
                 </table>
+
             </div>
+
         </section>
+
     </main>
 
-    <footer>Wi-Fi Assisted Smart Human Monitoring and Tracking System</footer>
+    <footer>
+        Wi-Fi Assisted Smart Human Monitoring and Tracking System
+    </footer>
 
     <script>
         const API_URL = "http://127.0.0.1:8000/api/devices";
+
         let allDevices = [];
+        let isLoading = false;
+
+        // Fetch device data from the FastAPI backend.
 
         async function loadDevices() {
+            if (isLoading) {
+                return;
+            }
+
+            isLoading = true;
+
             const message = document.getElementById("message");
+            const refreshButton =
+                document.getElementById("refreshButton");
+
+            refreshButton.disabled = true;
+            message.classList.remove("error-message");
+            message.textContent = "Updating device information...";
 
             try {
-                message.textContent = "Loading device data...";
-
                 const response = await fetch(API_URL);
+
                 if (!response.ok) {
-                    throw new Error("API error: " + response.status);
+                    throw new Error(
+                        "Backend returned HTTP " + response.status
+                    );
                 }
 
                 const data = await response.json();
+
+                if (!Array.isArray(data.devices)) {
+                    throw new Error("Invalid device data from backend");
+                }
+
                 allDevices = data.devices;
 
-                document.getElementById("total").textContent =
-                    allDevices.length;
-
-                document.getElementById("connected").textContent =
-                    allDevices.filter(d => d.status === "Connected").length;
-
-                document.getElementById("disconnected").textContent =
-                    allDevices.filter(d => d.status === "Disconnected").length;
-
+                updateSummary();
+                renderZones();
                 renderDevices();
 
                 message.textContent =
-                    "Last refreshed: " + new Date().toLocaleTimeString() +
-                    " | " + data.data_source;
+                    "Last refreshed: " +
+                    new Date().toLocaleTimeString() +
+                    " | Data source: " +
+                    (data.data_source || "Unknown");
 
             } catch (error) {
+                console.error("Dashboard error:", error);
+
                 message.textContent =
-                    "Backend connection failed. Check that FastAPI is running.";
-                console.error(error);
+                    "Backend connection failed. Make sure FastAPI " +
+                    "is running at http://127.0.0.1:8000.";
+
+                message.classList.add("error-message");
+
+            } finally {
+                isLoading = false;
+                refreshButton.disabled = false;
             }
         }
 
-        function renderDevices() {
-            const query =
-                document.getElementById("search").value.toLowerCase();
+        // Update summary numbers.
 
-            const filter =
+        function updateSummary() {
+            const connectedCount = allDevices.filter(
+                device => device.status === "Connected"
+            ).length;
+
+            const disconnectedCount = allDevices.filter(
+                device => device.status === "Disconnected"
+            ).length;
+
+            document.getElementById("total").textContent =
+                allDevices.length;
+
+            document.getElementById("connected").textContent =
+                connectedCount;
+
+            document.getElementById("disconnected").textContent =
+                disconnectedCount;
+        }
+
+        // Build zone cards from the backend data.
+
+        function renderZones() {
+            const zoneGrid = document.getElementById("zoneGrid");
+            zoneGrid.replaceChildren();
+
+            const zones = {};
+
+            allDevices.forEach(device => {
+                let zoneName;
+
+                if (device.status !== "Connected") {
+                    zoneName = "Disconnected Devices";
+                } else {
+                    zoneName = device.zone || "Zone Unknown";
+                }
+
+                if (!zones[zoneName]) {
+                    zones[zoneName] = {
+                        total: 0,
+                        connected: 0,
+                        disconnected: 0
+                    };
+                }
+
+                zones[zoneName].total++;
+
+                if (device.status === "Connected") {
+                    zones[zoneName].connected++;
+                } else {
+                    zones[zoneName].disconnected++;
+                }
+            });
+
+            const zoneEntries = Object.entries(zones);
+
+            if (zoneEntries.length === 0) {
+                const emptyMessage = document.createElement("p");
+                emptyMessage.className = "empty-zone";
+                emptyMessage.textContent = "No device data available.";
+                zoneGrid.appendChild(emptyMessage);
+                return;
+            }
+
+            zoneEntries.forEach(([zoneName, info]) => {
+                const zoneCard = document.createElement("article");
+                zoneCard.className = "zone-card";
+
+                const title = document.createElement("h3");
+                title.textContent = zoneName;
+
+                const label = document.createElement("span");
+                label.className = "zone-label";
+                label.textContent =
+                    zoneName === "Disconnected Devices"
+                        ? "LOCATION UNCONFIRMED"
+                        : "ZONE DATA";
+
+                const count = document.createElement("div");
+                count.className = "zone-count";
+                count.textContent = info.total + " device(s)";
+
+                const connected = document.createElement("p");
+                connected.className = "zone-detail";
+                connected.textContent =
+                    "Connected: " + info.connected;
+
+                const disconnected = document.createElement("p");
+                disconnected.className = "zone-detail";
+                disconnected.textContent =
+                    "Disconnected: " + info.disconnected;
+
+                const status = document.createElement("span");
+                status.className = "zone-status";
+
+                status.textContent =
+                    info.connected > 0
+                        ? "Active in demo data"
+                        : "No active devices";
+
+                zoneCard.append(
+                    title,
+                    label,
+                    count,
+                    connected,
+                    disconnected,
+                    status
+                );
+
+                zoneGrid.appendChild(zoneCard);
+            });
+        }
+
+        // Filter and display devices in the table.
+
+        function renderDevices() {
+            const searchText = document
+                .getElementById("search")
+                .value
+                .trim()
+                .toLowerCase();
+
+            const selectedStatus =
                 document.getElementById("statusFilter").value;
 
-            const matches = allDevices.filter(device => {
-                const textMatch =
-                    device.device_id.toLowerCase().includes(query) ||
-                    device.zone.toLowerCase().includes(query);
+            const filteredDevices = allDevices.filter(device => {
+                const deviceId = String(device.device_id || "")
+                    .toLowerCase();
 
-                const statusMatch =
-                    filter === "All" || device.status === filter;
+                const zone = String(device.zone || "")
+                    .toLowerCase();
 
-                return textMatch && statusMatch;
+                const deviceType = String(device.device_type || "")
+                    .toLowerCase();
+
+                const matchesSearch =
+                    deviceId.includes(searchText) ||
+                    zone.includes(searchText) ||
+                    deviceType.includes(searchText);
+
+                const matchesStatus =
+                    selectedStatus === "All" ||
+                    device.status === selectedStatus;
+
+                return matchesSearch && matchesStatus;
             });
 
             const table = document.getElementById("deviceTable");
             table.replaceChildren();
 
-            if (matches.length === 0) {
+            if (filteredDevices.length === 0) {
                 const row = document.createElement("tr");
                 const cell = document.createElement("td");
+
                 cell.colSpan = 5;
                 cell.textContent = "No matching devices found.";
+
                 row.appendChild(cell);
                 table.appendChild(row);
                 return;
             }
 
-            matches.forEach(device => {
+            filteredDevices.forEach(device => {
                 const row = document.createElement("tr");
 
-                [
-                    device.device_id,
-                    device.device_type,
-                    device.status,
-                    device.zone,
-                    new Date(device.last_seen).toLocaleString()
-                ].forEach((value, index) => {
+                const values = [
+                    device.device_id || "Unknown",
+                    device.device_type || "Unknown",
+                    device.status || "Unknown",
+                    device.zone || "Unknown",
+                    formatLastSeen(device.last_seen)
+                ];
+
+                values.forEach((value, index) => {
                     const cell = document.createElement("td");
 
                     if (index === 2) {
                         const badge = document.createElement("span");
-                        badge.className = "status " +
+
+                        badge.className =
+                            "status " +
                             (value === "Connected"
-                                ? "connected" : "disconnected");
+                                ? "connected"
+                                : "disconnected");
+
                         badge.textContent = value;
                         cell.appendChild(badge);
                     } else {
@@ -295,20 +669,45 @@
             });
         }
 
+        // Format timestamps safely.
+
+        function formatLastSeen(timestamp) {
+            if (!timestamp) {
+                return "Unknown";
+            }
+
+            const date = new Date(timestamp);
+
+            if (Number.isNaN(date.getTime())) {
+                return "Unknown";
+            }
+
+            return date.toLocaleString();
+        }
+
+        // Search and filter events.
+
         document.getElementById("search").addEventListener(
-            "input", renderDevices
+            "input",
+            renderDevices
         );
 
         document.getElementById("statusFilter").addEventListener(
-            "change", renderDevices
+            "change",
+            renderDevices
         );
 
         document.getElementById("refreshButton").addEventListener(
-            "click", loadDevices
+            "click",
+            loadDevices
         );
 
+        // Initial load and automatic refresh every five seconds.
+
         loadDevices();
+
         setInterval(loadDevices, 5000);
     </script>
+
 </body>
 </html>
