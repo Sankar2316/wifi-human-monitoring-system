@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Fi Human Monitoring Dashboard</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172033;
+        }
+
+        header {
+            background: #14213d;
+            color: white;
+            padding: 24px 5%;
+        }
+
+        header h1 { margin: 0 0 8px; }
+        header p { margin: 0; color: #cbd5e1; }
+
+        main {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        .notice {
+            background: #fff4d6;
+            border: 1px solid #f3d58a;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 3px 12px #14213d0d;
+        }
+
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .number { font-size: 30px; font-weight: bold; }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            padding: 11px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input, select { border: 1px solid #cbd5e1; background: white; }
+        input { flex: 1; min-width: 180px; }
+
+        button {
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1d4ed8; }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        th { color: #64748b; background: #f8fafc; }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .connected { color: #166534; background: #dcfce7; }
+        .disconnected { color: #991b1b; background: #fee2e2; }
+
+        #message { color: #64748b; font-size: 13px; }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Wi-Fi Human Monitoring System</h1>
+        <p>Campus Device Monitoring Dashboard</p>
+    </header>
+
+    <main>
+        <div class="notice">
+            DEMO MODE: The devices and zones below are sample data,
+            not actual college Wi-Fi devices or verified locations.
+        </div>
+
+        <section class="summary">
+            <div class="card">
+                <h3>Total Devices</h3>
+                <div class="number" id="total">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Connected</h3>
+                <div class="number" id="connected">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Disconnected</h3>
+                <div class="number" id="disconnected">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Data Source</h3>
+                <div class="number" style="font-size:18px">DEMO API</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Device Monitor</h2>
+
+            <div class="toolbar">
+                <input id="search" placeholder="Search device ID or zone">
+
+                <select id="statusFilter">
+                    <option value="All">All statuses</option>
+                    <option value="Connected">Connected</option>
+                    <option value="Disconnected">Disconnected</option>
+                </select>
+
+                <button id="refreshButton">Refresh Now</button>
+            </div>
+
+            <p id="message">Connecting to backend...</p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Zone</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deviceTable"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>Wi-Fi Assisted Smart Human Monitoring and Tracking System</footer>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/devices";
+        let allDevices = [];
+
+        async function loadDevices() {
+            const message = document.getElementById("message");
+
+            try {
+                message.textContent = "Loading device data...";
+
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error("API error: " + response.status);
+                }
+
+                const data = await response.json();
+                allDevices = data.devices;
+
+                document.getElementById("total").textContent =
+                    allDevices.length;
+
+                document.getElementById("connected").textContent =
+                    allDevices.filter(d => d.status === "Connected").length;
+
+                document.getElementById("disconnected").textContent =
+                    allDevices.filter(d => d.status === "Disconnected").length;
+
+                renderDevices();
+
+                message.textContent =
+                    "Last refreshed: " + new Date().toLocaleTimeString() +
+                    " | " + data.data_source;
+
+            } catch (error) {
+                message.textContent =
+                    "Backend connection failed. Check that FastAPI is running.";
+                console.error(error);
+            }
+        }
+
+        function renderDevices() {
+            const query =
+                document.getElementById("search").value.toLowerCase();
+
+            const filter =
+                document.getElementById("statusFilter").value;
+
+            const matches = allDevices.filter(device => {
+                const textMatch =
+                    device.device_id.toLowerCase().includes(query) ||
+                    device.zone.toLowerCase().includes(query);
+
+                const statusMatch =
+                    filter === "All" || device.status === filter;
+
+                return textMatch && statusMatch;
+            });
+
+            const table = document.getElementById("deviceTable");
+            table.replaceChildren();
+
+            if (matches.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 5;
+                cell.textContent = "No matching devices found.";
+                row.appendChild(cell);
+                table.appendChild(row);
+                return;
+            }
+
+            matches.forEach(device => {
+                const row = document.createElement("tr");
+
+                [
+                    device.device_id,
+                    device.device_type,
+                    device.status,
+                    device.zone,
+                    new Date(device.last_seen).toLocaleString()
+                ].forEach((value, index) => {
+                    const cell = document.createElement("td");
+
+                    if (index === 2) {
+                        const badge = document.createElement("span");
+                        badge.className = "status " +
+                            (value === "Connected"
+                                ? "connected" : "disconnected");
+                        badge.textContent = value;
+                        cell.appendChild(badge);
+                    } else {
+                        cell.textContent = value;
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                table.appendChild(row);
+            });
+        }
+
+        document.getElementById("search").addEventListener(
+            "input", renderDevices
+        );
+
+        document.getElementById("statusFilter").addEventListener(
+            "change", renderDevices
+        );
+
+        document.getElementById("refreshButton").addEventListener(
+            "click", loadDevices
+        );
+
+        loadDevices();
+        setInterval(loadDevices, 5000);
+    </script>
+</body>
+</html>
