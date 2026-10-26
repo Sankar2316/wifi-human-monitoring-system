@@ -279,6 +279,40 @@
                 padding: 11px 9px;
             }
         }
+        .action-button {
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.action-button.connect {
+    background: #15803d;
+}
+
+.action-button.disconnect {
+    background: #b91c1c;
+}
+
+.history-table-wrap {
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+#history-status {
+    color: #64748b;
+    font-size: 13px;
+}
     </style>
 </head>
 
@@ -389,6 +423,7 @@
                             <th>Status</th>
                             <th>Zone</th>
                             <th>Last Seen</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -399,8 +434,28 @@
 
         </section>
 
-    </main>
+        <!-- Recent device activity -->
+        <section class="card" id="history-section">
+            <h2>Recent Device Activity</h2>
+            <p id="history-status" aria-live="polite">Loading device history...</p>
+            <div class="history-table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>Event</th>
+                            <th>Zone</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr><td colspan="4">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
+    </main>
     <footer>
         Wi-Fi Assisted Smart Human Monitoring and Tracking System
     </footer>
@@ -625,7 +680,7 @@
                 const row = document.createElement("tr");
                 const cell = document.createElement("td");
 
-                cell.colSpan = 5;
+                cell.colSpan = 6;
                 cell.textContent = "No matching devices found.";
 
                 row.appendChild(cell);
@@ -664,9 +719,115 @@
 
                     row.appendChild(cell);
                 });
+                const actionCell = document.createElement("td");
+                const actionButton = document.createElement("button");
+
+                const connected = device.status === "Connected";
+
+                actionButton.type = "button";
+                actionButton.className =
+                    "action-button " +
+                    (connected ? "disconnect" : "connect");
+
+                actionButton.textContent =
+                    connected ? "Disconnect" : "Connect";
+
+                actionButton.addEventListener("click", () => {
+                    updateDeviceStatus(device, actionButton);
+                });
+
+                actionCell.appendChild(actionButton);
+                row.appendChild(actionCell);
 
                 table.appendChild(row);
             });
+        }
+
+        // Update a device using the status format expected by the backend.
+        async function updateDeviceStatus(device, button) {
+            const newStatus = device.status === "Connected"
+                ? "Disconnected"
+                : "Connected";
+            const message = document.getElementById("message");
+
+            button.disabled = true;
+            message.classList.remove("error-message");
+            message.textContent = "Updating " + device.device_id + "...";
+
+            try {
+                const response = await fetch(
+                    API_URL + "/" + encodeURIComponent(device.device_id),
+                    {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            status: newStatus,
+                            zone: device.zone || "Unknown"
+                        })
+                    }
+                );
+
+                let result = {};
+                try { result = await response.json(); } catch (_) {}
+                if (!response.ok) {
+                    throw new Error(result.detail || "HTTP " + response.status);
+                }
+
+                message.textContent = device.device_id + " status updated to " + newStatus + ".";
+                await loadDevices();
+                await loadDeviceHistory();
+            } catch (error) {
+                console.error("Device status update failed:", error);
+                message.textContent = "Status update failed: " + error.message;
+                message.classList.add("error-message");
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        // Load recent events from the backend.
+        async function loadDeviceHistory() {
+            const status = document.getElementById("history-status");
+            const tbody = document.getElementById("history-table-body");
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/history?limit=50");
+                if (!response.ok) throw new Error("HTTP " + response.status);
+
+                const data = await response.json();
+                const history = Array.isArray(data.history)
+                    ? data.history
+                    : (Array.isArray(data) ? data : []);
+
+                tbody.replaceChildren();
+                if (history.length === 0) {
+                    const row = document.createElement("tr");
+                    const cell = document.createElement("td");
+                    cell.colSpan = 4;
+                    cell.textContent = "No activity records found.";
+                    row.appendChild(cell);
+                    tbody.appendChild(row);
+                } else {
+                    history.forEach(item => {
+                        const row = document.createElement("tr");
+                        [
+                            item.device_id,
+                            item.event_type,
+                            item.zone,
+                            formatLastSeen(item.event_time)
+                        ].forEach(value => {
+                            const cell = document.createElement("td");
+                            cell.textContent = value == null ? "-" : String(value);
+                            row.appendChild(cell);
+                        });
+                        tbody.appendChild(row);
+                    });
+                }
+                status.textContent = "Showing " + history.length + " history records (demo data).";
+            } catch (error) {
+                console.error("History loading failed:", error);
+                status.textContent = "History unavailable. Check whether FastAPI is running.";
+            }
         }
 
         // Format timestamps safely.
@@ -705,9 +866,12 @@
         // Initial load and automatic refresh every five seconds.
 
         loadDevices();
+        loadDeviceHistory();
 
         setInterval(loadDevices, 5000);
+        setInterval(loadDeviceHistory, 10000);
     </script>
+
 
 </body>
 </html>
