@@ -1,877 +1,1395 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusPulse | Campus Monitoring</title>
 
-    <title>Wi-Fi Human Monitoring System</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #172033;
-        }
-
-        header {
-            background: #14213d;
-            color: white;
-            padding: 24px 5%;
-        }
-
-        header h1 {
-            margin: 0 0 8px;
-        }
-
-        header p {
-            margin: 0;
-            color: #cbd5e1;
-        }
-
-        main {
-            max-width: 1250px;
-            margin: 25px auto;
-            padding: 0 20px;
-        }
-
-        .notice {
-            background: #fff4d6;
-            border: 1px solid #f3d58a;
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 22px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 3px 12px #14213d0d;
-            margin-bottom: 22px;
-        }
-
-        .card h2 {
-            margin-top: 0;
-            color: #14213d;
-        }
-
-        .summary .card {
-            margin-bottom: 0;
-        }
-
-        .summary .card h3 {
-            margin: 0 0 12px;
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        .number {
-            font-size: 30px;
-            font-weight: bold;
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-
-        input,
-        select,
-        button {
-            padding: 11px 13px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        input,
-        select {
-            border: 1px solid #cbd5e1;
-            background: white;
-        }
-
-        input {
-            flex: 1;
-            min-width: 180px;
-        }
-
-        button {
-            border: none;
-            background: #2563eb;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: wait;
-        }
-
-        /* Campus zone overview */
-
-        .zone-intro {
-            color: #64748b;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .zone-grid {
-            display: grid;
-            grid-template-columns: repeat(
-                auto-fit,
-                minmax(220px, 1fr)
-            );
-            gap: 16px;
-            margin-top: 18px;
-        }
-
-        .zone-card {
-            background: #f8fafc;
-            border: 1px solid #dbe3ef;
-            border-radius: 12px;
-            padding: 18px;
-            min-width: 0;
-        }
-
-        .zone-card h3 {
-            margin: 0 0 12px;
-            font-size: 17px;
-            overflow-wrap: anywhere;
-        }
-
-        .zone-label {
-            display: inline-block;
-            background: #dbeafe;
-            color: #1d4ed8;
-            padding: 5px 9px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .zone-count {
-            font-size: 26px;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-
-        .zone-detail {
-            font-size: 13px;
-            margin: 8px 0;
-            color: #475569;
-        }
-
-        .zone-status {
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #166534;
-            background: #dcfce7;
-            padding: 6px 9px;
-            border-radius: 20px;
-        }
-
-        .empty-zone {
-            color: #64748b;
-            padding: 15px 0;
-        }
-
-        /* Device table */
-
-        .table-wrap {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        th,
-        td {
-            text-align: left;
-            padding: 14px 12px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 14px;
-        }
-
-        th {
-            color: #64748b;
-            background: #f8fafc;
-            white-space: nowrap;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .connected {
-            color: #166534;
-            background: #dcfce7;
-        }
-
-        .disconnected {
-            color: #991b1b;
-            background: #fee2e2;
-        }
-
-        #message {
-            color: #64748b;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .error-message {
-            color: #b91c1c !important;
-        }
-
-        footer {
-            text-align: center;
-            padding: 25px;
-            color: #64748b;
-            font-size: 13px;
-        }
-
-        @media (max-width: 600px) {
-            header {
-                padding: 22px 18px;
-            }
-
-            header h1 {
-                font-size: 22px;
-            }
-
-            main {
-                padding: 0 12px;
-            }
-
-            .card {
-                padding: 15px;
-            }
-
-            th,
-            td {
-                padding: 11px 9px;
-            }
-        }
-        .action-button {
-    padding: 8px 12px;
-    font-size: 12px;
-    white-space: nowrap;
+<style>
+:root {
+  --navy: #142541;
+  --blue: #356ae6;
+  --bg: #f4f7fb;
+  --line: #e5eaf2;
+  --muted: #718096;
+  --green: #16845b;
+  --red: #c34242;
+  --amber: #a76608;
 }
-
-.action-button.connect {
-    background: #15803d;
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #1b2940;
+  background: var(--bg);
 }
-
-.action-button.disconnect {
-    background: #b91c1c;
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app {
+  display: grid;
+  grid-template-columns: 235px minmax(0,1fr);
+  min-height: 100vh;
 }
-
-.history-table-wrap {
-    overflow-x: auto;
+.sidebar {
+  background: var(--navy);
+  color: white;
+  padding: 22px 15px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
-
-.history-table {
-    width: 100%;
-    border-collapse: collapse;
+.brand {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 0 8px;
 }
-
-.history-table th,
-.history-table td {
-    padding: 12px;
-    border-bottom: 1px solid #e2e8f0;
-    text-align: left;
+.logo {
+  display: grid;
+  place-items: center;
+  background: white;
+  color: var(--navy);
+  font-weight: 900;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
 }
-
-#history-status {
-    color: #64748b;
-    font-size: 13px;
+.brand strong { font-size: 17px; }
+.brand small {
+  display: block;
+  color: #aab9d0;
+  margin-top: 4px;
+  font-size: 10px;
 }
-    </style>
+.navlabel {
+  color: #8192aa;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 0 12px 8px;
+}
+.nav { display: grid; gap: 5px; }
+.nav a {
+  color: #c8d3e3;
+  text-decoration: none;
+  padding: 11px 12px;
+  border-radius: 9px;
+  font-weight: 600;
+}
+.nav a:hover, .nav a.active {
+  background: #263f65;
+  color: white;
+}
+.side-note {
+  margin-top: auto;
+  background: #1b3152;
+  border: 1px solid #344866;
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 11px;
+  color: #bdc9d9;
+  line-height: 1.6;
+}
+.pill {
+  display: inline-block;
+  background: #fff2d9;
+  color: #85520d;
+  border-radius: 20px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 800;
+}
+main { min-width: 0; }
+.topbar {
+  height: 70px;
+  background: white;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+.crumb { font-size: 11px; color: var(--muted); }
+.topbar strong { display: block; margin-top: 4px; }
+.online {
+  background: #e7f7ef;
+  color: var(--green);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.content {
+  max-width: 1550px;
+  padding: 27px 28px 38px;
+  margin: auto;
+}
+.pagehead {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+h1 {
+  font-size: 26px;
+  letter-spacing: -.6px;
+  margin: 0 0 7px;
+}
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  border: 1px solid var(--line);
+  background: white;
+  color: #33445f;
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-weight: 700;
+}
+.btn.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+.notice {
+  background: #fff6e5;
+  border: 1px solid #f0d7a5;
+  color: #785019;
+  padding: 13px 15px;
+  border-radius: 11px;
+  line-height: 1.6;
+  font-size: 12px;
+  margin-bottom: 19px;
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 13px;
+}
+.card, .kpi {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  box-shadow: 0 6px 22px #1c355b08;
+  min-width: 0;
+}
+.kpi { padding: 17px; }
+.kpi-label {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+.ico {
+  background: #edf3ff;
+  color: var(--blue);
+  border-radius: 9px;
+  padding: 8px;
+}
+.num {
+  font-size: 29px;
+  font-weight: 850;
+  margin: 14px 0 6px;
+}
+.hint { font-size: 10px; color: var(--muted); }
+.section { margin-top: 25px; scroll-margin-top: 15px; }
+.secthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+.secthead h2 { font-size: 16px; margin: 0 0 5px; }
+.secthead p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: minmax(0,1.2fr) minmax(270px,.9fr);
+  gap: 14px;
+}
+.card { padding: 18px; }
+.ctitle { font-size: 13px; font-weight: 800; margin: 0; }
+.desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 5px 0 0;
+}
+select, input {
+  border: 1px solid #dbe2ed;
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+  color: #33445f;
+  min-width: 0;
+}
+.controls, .toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+.toolbar input[type="search"] { flex: 1; min-width: 175px; }
+.map {
+  background: #f6f9ff;
+  border: 1px solid #e4eaf6;
+  border-radius: 10px;
+  padding: 13px;
+  margin-top: 13px;
+}
+.mapcaption {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.buildings {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+}
+.building {
+  border: 1px solid #d6e0f1;
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: left;
+  min-height: 92px;
+}
+.building.selected, .building:hover {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px #dbe6ff;
+}
+.btop { display: flex; justify-content: space-between; }
+.bicon {
+  background: #edf3ff;
+  color: var(--blue);
+  border-radius: 8px;
+  padding: 6px;
+}
+.count {
+  font-size: 9px;
+  background: #edf3ff;
+  color: #3459a8;
+  border-radius: 20px;
+  padding: 5px;
+}
+.bname { font-weight: 800; font-size: 11px; margin: 9px 0 4px; }
+.bmeta { font-size: 9px; color: var(--muted); }
+.legend { font-size: 10px; color: var(--muted); margin-top: 12px; }
+.zones { display: grid; gap: 8px; margin-top: 13px; }
+.zone {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.zone strong { font-size: 11px; }
+.zone small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 4px;
+}
+.zone button {
+  border: 0;
+  background: #edf3ff;
+  color: #3159b2;
+  border-radius: 7px;
+  padding: 7px;
+  font-size: 10px;
+  font-weight: 800;
+}
+.chart {
+  height: 185px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 15px;
+  padding: 20px 10px 0;
+  background: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 39px, #edf0f5 40px
+  );
+  border-bottom: 1px solid var(--line);
+}
+.bargrp {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+}
+.bar {
+  width: 32px;
+  max-width: 75%;
+  background: linear-gradient(#7598f3,#356ae6);
+  border-radius: 6px 6px 1px 1px;
+  min-height: 2px;
+}
+.bar.red { background: linear-gradient(#f09a9a,#d64e4e); }
+.bargrp small { font-size: 10px; color: var(--muted); }
+.list { display: grid; gap: 11px; margin-top: 14px; }
+.listrow { display: flex; gap: 10px; align-items: center; }
+.listicon {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #e7f7ef;
+  color: var(--green);
+  flex-shrink: 0;
+}
+.listcopy { flex: 1; min-width: 0; }
+.listcopy strong { font-size: 11px; display: block; }
+.listcopy small {
+  font-size: 10px;
+  color: var(--muted);
+  display: block;
+  margin-top: 4px;
+}
+.listvalue { font-size: 10px; font-weight: 800; color: var(--green); }
+table { border-collapse: collapse; width: 100%; min-width: 740px; }
+th, td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 11px;
+  white-space: nowrap;
+}
+th {
+  background: #f8faff;
+  color: #7b8799;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+tbody tr:hover { background: #fbfcff; }
+.tablewrap { overflow: auto; border: 1px solid var(--line); border-radius: 9px; }
+.deviceid { font-weight: 800; }
+.sub { display: block; color: var(--muted); font-size: 9px; margin-top: 4px; }
+.badge {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 6px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+.connected { background: #e7f7ef; color: var(--green); }
+.disconnected { background: #fff0f0; color: var(--red); }
+.actionbtn {
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 7px;
+  padding: 7px 9px;
+  font-size: 10px;
+  font-weight: 800;
+}
+.connect { color: var(--green); border-color: #b9e4ce; }
+.disconnect { color: var(--red); border-color: #f0c5c5; }
+.statusline { font-size: 11px; color: var(--muted); margin: 12px 0; }
+.timeline { display: grid; gap: 0; margin-top: 12px; }
+.event {
+  display: grid;
+  grid-template-columns: 17px minmax(0,1fr) auto;
+  gap: 10px;
+  padding-bottom: 15px;
+}
+.eventdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+  margin-top: 4px;
+}
+.event strong { font-size: 11px; }
+.event small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.event time { font-size: 9px; color: var(--muted); white-space: nowrap; }
+.manage { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.field { display: grid; gap: 6px; margin-top: 12px; }
+.field label { font-size: 11px; font-weight: 800; color: #4c5c73; }
+.field input, .field select { width: 100%; }
+.smallnote {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 13px;
+}
+.empty { text-align: center; padding: 24px; color: var(--muted); font-size: 11px; }
+.footer { text-align: center; color: #96a0b0; font-size: 10px; padding: 24px 0; }
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #162944;
+  color: white;
+  padding: 12px 15px;
+  border-radius: 9px;
+  display: none;
+  z-index: 5;
+  max-width: 90vw;
+  font-size: 12px;
+}
+@media(max-width:1050px) {
+  .app { grid-template-columns: 205px minmax(0,1fr); }
+  .content { padding: 22px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .kpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:700px) {
+  .app { display: block; }
+  .sidebar { position: relative; height: auto; padding: 13px; gap: 14px; }
+  .side-note, .navlabel { display: none; }
+  .nav { display: flex; overflow: auto; }
+  .nav a { white-space: nowrap; font-size: 11px; padding: 9px; }
+  .topbar { height: 60px; padding: 0 15px; }
+  .content { padding: 18px 12px; }
+  .pagehead { display: block; }
+  .actions { margin-top: 12px; }
+  .kpis { gap: 8px; }
+  .kpi { padding: 13px; }
+  .num { font-size: 24px; }
+  .card { padding: 14px; }
+  .manage { grid-template-columns: 1fr; }
+  .buildings { gap: 7px; }
+  .building { padding: 9px; }
+}
+@media(max-width:380px) {
+  .buildings { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 
 <body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">CP</div>
+      <div><strong>CampusPulse</strong><small>Wi-Fi Monitoring Suite</small></div>
+    </div>
 
-    <header>
-        <h1>Wi-Fi Human Monitoring System</h1>
-        <p>Campus Device Monitoring Dashboard</p>
+    <div>
+      <div class="navlabel">Workspace</div>
+      <nav class="nav">
+        <a class="active" href="#overview">▦ &nbsp; Overview</a>
+        <a href="#campus-map">⌖ &nbsp; Campus map</a>
+        <a href="#devices">▣ &nbsp; Device monitoring</a>
+        <a href="#analytics">▥ &nbsp; Live analytics</a>
+        <a href="#alerts">♧ &nbsp; Alerts</a>
+        <a href="#activity">◷ &nbsp; Activity timeline</a>
+      </nav>
+    </div>
+
+    <div>
+      <div class="navlabel">Administration</div>
+      <nav class="nav">
+        <a href="#management">⌂ &nbsp; Block & floor setup</a>
+        <a href="#reports">⇩ &nbsp; Reports & export</a>
+        <a href="#system-health">⚙ &nbsp; System health</a>
+      </nav>
+    </div>
+
+    <div class="side-note">
+      <strong>Prototype environment</strong><br>
+      Sample device records only. Actual Wi-Fi discovery and indoor positioning are not connected.
+      <br><br><span class="pill">● DEMO DATA</span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div><span class="crumb">Workspace / Monitoring</span><strong>Campus monitoring workspace</strong></div>
+      <span class="online" id="topStatus">Checking API…</span>
     </header>
 
-    <main>
-
-        <div class="notice">
-            <strong>DEMO MODE:</strong>
-            Devices and zone information currently come from sample
-            backend data. They do not represent actual college Wi-Fi
-            devices or verified indoor locations.
+    <div class="content">
+      <section id="overview">
+        <div class="pagehead">
+          <div>
+            <h1>Campus operations overview</h1>
+            <p class="subtitle">Monitor sample device status, illustrative zones and system activity from one workspace.</p>
+          </div>
+          <div class="actions">
+            <button class="btn" id="refresh">↻ Refresh data</button>
+            <button class="btn primary" id="exportTop">⇩ Export report</button>
+          </div>
         </div>
 
-        <!-- Summary cards -->
+        <div class="notice">
+          <strong>ⓘ PROTOTYPE / DEMO MODE</strong><br>
+          Device records, zone assignments and map sections are sample data.
+          A connected Wi-Fi device does not identify a person or prove an exact indoor location.
+          Real network integration requires explicit campus IT authorization.
+        </div>
 
-        <section class="summary">
+        <div class="kpis">
+          <div class="kpi"><div class="kpi-label">Total demo devices <span class="ico">▣</span></div><div class="num" id="total">—</div><div class="hint">Records returned by API</div></div>
+          <div class="kpi"><div class="kpi-label">Connected <span class="ico">⌁</span></div><div class="num" id="connected">—</div><div class="hint" id="percent">Current sample status</div></div>
+          <div class="kpi"><div class="kpi-label">Disconnected <span class="ico">⊘</span></div><div class="num" id="disconnected">—</div><div class="hint">Current sample status</div></div>
+          <div class="kpi"><div class="kpi-label">Activity events <span class="ico">◷</span></div><div class="num" id="eventCount">—</div><div class="hint">Recent history API records</div></div>
+        </div>
+      </section>
 
-            <div class="card">
-                <h3>Total Devices</h3>
-                <div class="number" id="total">0</div>
+      <section class="section" id="campus-map">
+        <div class="secthead">
+          <div><h2>Interactive campus map</h2><p>Choose an illustrative section, floor and zone to inspect sample device records.</p></div>
+          <span class="pill">ILLUSTRATIVE MAP</span>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h3 class="ctitle">Campus section overview</h3>
+            <p class="desc">Sample department sections only—not verified physical building names or surveyed floor plans.</p>
+            <div class="controls">
+              <select id="floor"><option>Ground Floor</option><option>First Floor</option><option>Second Floor</option></select>
+              <button class="btn" id="clearMap">Clear selection</button>
             </div>
-
-            <div class="card">
-                <h3>Connected</h3>
-                <div class="number" id="connected">0</div>
+            <div class="map">
+              <div class="mapcaption"><span>SCHEMATIC CAMPUS VIEW</span><span id="floorLabel">GROUND FLOOR</span></div>
+              <div class="buildings" id="buildings"></div>
+              <div class="legend">● Connected demo record present &nbsp; ○ No matching connected record</div>
             </div>
+          </div>
+          <div class="card">
+            <h3 class="ctitle">Selected section details</h3>
+            <p class="desc">Zone counts match sample zone labels only.</p>
+            <div id="zoneDetail" class="zones"><div class="empty">Select a section on the map.</div></div>
+          </div>
+        </div>
+      </section>
 
-            <div class="card">
-                <h3>Disconnected</h3>
-                <div class="number" id="disconnected">0</div>
+      <section class="section" id="devices">
+        <div class="secthead"><div><h2>Device monitoring</h2><p>Search, filter and change demo connection states through the existing API.</p></div></div>
+        <div class="card">
+          <div class="toolbar">
+            <input id="search" type="search" placeholder="Search ID, type or zone…">
+            <select id="statusFilter"><option value="all">All statuses</option><option value="connected">Connected</option><option value="disconnected">Disconnected</option></select>
+            <select id="typeFilter"><option value="all">All device types</option></select>
+            <select id="zoneFilter"><option value="all">All zones</option></select>
+            <button class="btn" id="clearFilters">Clear filters</button>
+          </div>
+          <div id="message" class="statusline">Connecting to backend…</div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Device</th><th>Type</th><th>Status</th><th>Assigned sample zone</th><th>Last seen</th><th>Action</th></tr></thead>
+              <tbody id="deviceTable"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="analytics">
+        <div class="secthead"><div><h2>Live analytics</h2><p>Calculated from current sample records; not measured occupancy or location analytics.</p></div></div>
+        <div class="grid2">
+          <div class="card"><h3 class="ctitle">Device status distribution</h3><p class="desc">Current API snapshot</p><div class="chart" id="chart"></div><p class="desc" id="chartSummary"></p></div>
+          <div class="card"><h3 class="ctitle">Zone distribution</h3><p class="desc">Sample records by zone</p><div class="list" id="zoneAnalytics"></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="alerts">
+        <div class="secthead"><div><h2>Alerts & notifications</h2><p>Rule-based notices from demo status records—not real network security alerts.</p></div><span class="pill" id="alertCount">0 notices</span></div>
+        <div class="card"><div class="list" id="alertList"></div></div>
+      </section>
+
+      <section class="section" id="activity">
+        <div class="secthead"><div><h2>Activity timeline</h2><p>Recent status events stored by the backend database.</p></div><button class="btn" id="refreshHistory">↻ Refresh history</button></div>
+        <div class="card"><p class="desc" id="historyStatus">Loading history…</p><div class="timeline" id="timeline"></div></div>
+      </section>
+
+      <section class="section" id="management">
+        <div class="secthead"><div><h2>Block & floor management</h2><p>Add illustrative labels to this browser session only; not saved to backend.</p></div><span class="pill">LOCAL DEMO</span></div>
+        <div class="card">
+          <div class="manage">
+            <div>
+              <h3 class="ctitle">Add sample campus section</h3>
+              <div class="field"><label for="newBlock">Section label</label><input id="newBlock" placeholder="e.g. Engineering Section E"></div>
+              <div class="field"><label for="newDept">Department / purpose</label><input id="newDept" placeholder="e.g. Sample laboratory area"></div>
+              <div class="field"><label for="newFloor">Floor</label><select id="newFloor"><option>Ground Floor</option><option>First Floor</option><option>Second Floor</option></select></div>
+              <div class="field"><button class="btn primary" id="addBlock">＋ Add sample section</button></div>
             </div>
-
-            <div class="card">
-                <h3>Data Source</h3>
-                <div class="number" style="font-size: 18px">
-                    DEMO API
-                </div>
+            <div>
+              <h3 class="ctitle">Current session sections</h3><div class="list" id="managedBlocks"></div>
+              <p class="smallnote">Replace illustrative names with campus-approved names after verification. New sections reset when the page reloads.</p>
             </div>
-
-        </section>
-
-        <!-- Campus zone overview -->
-
-        <section class="card">
-
-            <h2>Campus Zone Overview</h2>
-
-            <p class="zone-intro">
-                Device distribution grouped by the zone information
-                returned by the backend. Disconnected devices are
-                grouped separately because their current location
-                cannot be confirmed from this demo data.
-            </p>
-
-            <div id="zoneGrid" class="zone-grid">
-                <p class="empty-zone">Loading zone information...</p>
-            </div>
-
-        </section>
-
-        <!-- Device monitoring table -->
-
-        <section class="card">
-
-            <h2>Device Monitor</h2>
-
-            <div class="toolbar">
-
-                <input
-                    id="search"
-                    type="search"
-                    placeholder="Search device ID or zone..."
-                    aria-label="Search device ID or zone"
-                >
-
-                <select
-                    id="statusFilter"
-                    aria-label="Filter by device status"
-                >
-                    <option value="All">All statuses</option>
-                    <option value="Connected">Connected</option>
-                    <option value="Disconnected">Disconnected</option>
-                </select>
-
-                <button id="refreshButton" type="button">
-                    Refresh Now
-                </button>
-
-            </div>
-
-            <p id="message" aria-live="polite">
-                Connecting to backend...
-            </p>
-
-            <div class="table-wrap">
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Device ID</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Zone</th>
-                            <th>Last Seen</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="deviceTable"></tbody>
-                </table>
-
-            </div>
-
-        </section>
-
-        <!-- Recent device activity -->
-        <section class="card" id="history-section">
-            <h2>Recent Device Activity</h2>
-            <p id="history-status" aria-live="polite">Loading device history...</p>
-            <div class="history-table-wrap">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Device ID</th>
-                            <th>Event</th>
-                            <th>Zone</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table-body">
-                        <tr><td colspan="4">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-    </main>
-    <footer>
-        Wi-Fi Assisted Smart Human Monitoring and Tracking System
-    </footer>
-
-    <script>
-        const API_URL = "http://127.0.0.1:8000/api/devices";
-
-        let allDevices = [];
-        let isLoading = false;
-
-        // Fetch device data from the FastAPI backend.
-
-        async function loadDevices() {
-            if (isLoading) {
-                return;
-            }
-
-            isLoading = true;
-
-            const message = document.getElementById("message");
-            const refreshButton =
-                document.getElementById("refreshButton");
-
-            refreshButton.disabled = true;
-            message.classList.remove("error-message");
-            message.textContent = "Updating device information...";
-
-            try {
-                const response = await fetch(API_URL);
-
-                if (!response.ok) {
-                    throw new Error(
-                        "Backend returned HTTP " + response.status
-                    );
-                }
-
-                const data = await response.json();
-
-                if (!Array.isArray(data.devices)) {
-                    throw new Error("Invalid device data from backend");
-                }
-
-                allDevices = data.devices;
-
-                updateSummary();
-                renderZones();
-                renderDevices();
-
-                message.textContent =
-                    "Last refreshed: " +
-                    new Date().toLocaleTimeString() +
-                    " | Data source: " +
-                    (data.data_source || "Unknown");
-
-            } catch (error) {
-                console.error("Dashboard error:", error);
-
-                message.textContent =
-                    "Backend connection failed. Make sure FastAPI " +
-                    "is running at http://127.0.0.1:8000.";
-
-                message.classList.add("error-message");
-
-            } finally {
-                isLoading = false;
-                refreshButton.disabled = false;
-            }
-        }
-
-        // Update summary numbers.
-
-        function updateSummary() {
-            const connectedCount = allDevices.filter(
-                device => device.status === "Connected"
-            ).length;
-
-            const disconnectedCount = allDevices.filter(
-                device => device.status === "Disconnected"
-            ).length;
-
-            document.getElementById("total").textContent =
-                allDevices.length;
-
-            document.getElementById("connected").textContent =
-                connectedCount;
-
-            document.getElementById("disconnected").textContent =
-                disconnectedCount;
-        }
-
-        // Build zone cards from the backend data.
-
-        function renderZones() {
-            const zoneGrid = document.getElementById("zoneGrid");
-            zoneGrid.replaceChildren();
-
-            const zones = {};
-
-            allDevices.forEach(device => {
-                let zoneName;
-
-                if (device.status !== "Connected") {
-                    zoneName = "Disconnected Devices";
-                } else {
-                    zoneName = device.zone || "Zone Unknown";
-                }
-
-                if (!zones[zoneName]) {
-                    zones[zoneName] = {
-                        total: 0,
-                        connected: 0,
-                        disconnected: 0
-                    };
-                }
-
-                zones[zoneName].total++;
-
-                if (device.status === "Connected") {
-                    zones[zoneName].connected++;
-                } else {
-                    zones[zoneName].disconnected++;
-                }
-            });
-
-            const zoneEntries = Object.entries(zones);
-
-            if (zoneEntries.length === 0) {
-                const emptyMessage = document.createElement("p");
-                emptyMessage.className = "empty-zone";
-                emptyMessage.textContent = "No device data available.";
-                zoneGrid.appendChild(emptyMessage);
-                return;
-            }
-
-            zoneEntries.forEach(([zoneName, info]) => {
-                const zoneCard = document.createElement("article");
-                zoneCard.className = "zone-card";
-
-                const title = document.createElement("h3");
-                title.textContent = zoneName;
-
-                const label = document.createElement("span");
-                label.className = "zone-label";
-                label.textContent =
-                    zoneName === "Disconnected Devices"
-                        ? "LOCATION UNCONFIRMED"
-                        : "ZONE DATA";
-
-                const count = document.createElement("div");
-                count.className = "zone-count";
-                count.textContent = info.total + " device(s)";
-
-                const connected = document.createElement("p");
-                connected.className = "zone-detail";
-                connected.textContent =
-                    "Connected: " + info.connected;
-
-                const disconnected = document.createElement("p");
-                disconnected.className = "zone-detail";
-                disconnected.textContent =
-                    "Disconnected: " + info.disconnected;
-
-                const status = document.createElement("span");
-                status.className = "zone-status";
-
-                status.textContent =
-                    info.connected > 0
-                        ? "Active in demo data"
-                        : "No active devices";
-
-                zoneCard.append(
-                    title,
-                    label,
-                    count,
-                    connected,
-                    disconnected,
-                    status
-                );
-
-                zoneGrid.appendChild(zoneCard);
-            });
-        }
-
-        // Filter and display devices in the table.
-
-        function renderDevices() {
-            const searchText = document
-                .getElementById("search")
-                .value
-                .trim()
-                .toLowerCase();
-
-            const selectedStatus =
-                document.getElementById("statusFilter").value;
-
-            const filteredDevices = allDevices.filter(device => {
-                const deviceId = String(device.device_id || "")
-                    .toLowerCase();
-
-                const zone = String(device.zone || "")
-                    .toLowerCase();
-
-                const deviceType = String(device.device_type || "")
-                    .toLowerCase();
-
-                const matchesSearch =
-                    deviceId.includes(searchText) ||
-                    zone.includes(searchText) ||
-                    deviceType.includes(searchText);
-
-                const matchesStatus =
-                    selectedStatus === "All" ||
-                    device.status === selectedStatus;
-
-                return matchesSearch && matchesStatus;
-            });
-
-            const table = document.getElementById("deviceTable");
-            table.replaceChildren();
-
-            if (filteredDevices.length === 0) {
-                const row = document.createElement("tr");
-                const cell = document.createElement("td");
-
-                cell.colSpan = 6;
-                cell.textContent = "No matching devices found.";
-
-                row.appendChild(cell);
-                table.appendChild(row);
-                return;
-            }
-
-            filteredDevices.forEach(device => {
-                const row = document.createElement("tr");
-
-                const values = [
-                    device.device_id || "Unknown",
-                    device.device_type || "Unknown",
-                    device.status || "Unknown",
-                    device.zone || "Unknown",
-                    formatLastSeen(device.last_seen)
-                ];
-
-                values.forEach((value, index) => {
-                    const cell = document.createElement("td");
-
-                    if (index === 2) {
-                        const badge = document.createElement("span");
-
-                        badge.className =
-                            "status " +
-                            (value === "Connected"
-                                ? "connected"
-                                : "disconnected");
-
-                        badge.textContent = value;
-                        cell.appendChild(badge);
-                    } else {
-                        cell.textContent = value;
-                    }
-
-                    row.appendChild(cell);
-                });
-                const actionCell = document.createElement("td");
-                const actionButton = document.createElement("button");
-
-                const connected = device.status === "Connected";
-
-                actionButton.type = "button";
-                actionButton.className =
-                    "action-button " +
-                    (connected ? "disconnect" : "connect");
-
-                actionButton.textContent =
-                    connected ? "Disconnect" : "Connect";
-
-                actionButton.addEventListener("click", () => {
-                    updateDeviceStatus(device, actionButton);
-                });
-
-                actionCell.appendChild(actionButton);
-                row.appendChild(actionCell);
-
-                table.appendChild(row);
-            });
-        }
-
-        // Update a device using the status format expected by the backend.
-        async function updateDeviceStatus(device, button) {
-            const newStatus = device.status === "Connected"
-                ? "Disconnected"
-                : "Connected";
-            const message = document.getElementById("message");
-
-            button.disabled = true;
-            message.classList.remove("error-message");
-            message.textContent = "Updating " + device.device_id + "...";
-
-            try {
-                const response = await fetch(
-                    API_URL + "/" + encodeURIComponent(device.device_id),
-                    {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            status: newStatus,
-                            zone: device.zone || "Unknown"
-                        })
-                    }
-                );
-
-                let result = {};
-                try { result = await response.json(); } catch (_) {}
-                if (!response.ok) {
-                    throw new Error(result.detail || "HTTP " + response.status);
-                }
-
-                message.textContent = device.device_id + " status updated to " + newStatus + ".";
-                await loadDevices();
-                await loadDeviceHistory();
-            } catch (error) {
-                console.error("Device status update failed:", error);
-                message.textContent = "Status update failed: " + error.message;
-                message.classList.add("error-message");
-            } finally {
-                button.disabled = false;
-            }
-        }
-
-        // Load recent events from the backend.
-        async function loadDeviceHistory() {
-            const status = document.getElementById("history-status");
-            const tbody = document.getElementById("history-table-body");
-
-            try {
-                const response = await fetch("http://127.0.0.1:8000/api/history?limit=50");
-                if (!response.ok) throw new Error("HTTP " + response.status);
-
-                const data = await response.json();
-                const history = Array.isArray(data.history)
-                    ? data.history
-                    : (Array.isArray(data) ? data : []);
-
-                tbody.replaceChildren();
-                if (history.length === 0) {
-                    const row = document.createElement("tr");
-                    const cell = document.createElement("td");
-                    cell.colSpan = 4;
-                    cell.textContent = "No activity records found.";
-                    row.appendChild(cell);
-                    tbody.appendChild(row);
-                } else {
-                    history.forEach(item => {
-                        const row = document.createElement("tr");
-                        [
-                            item.device_id,
-                            item.event_type,
-                            item.zone,
-                            formatLastSeen(item.event_time)
-                        ].forEach(value => {
-                            const cell = document.createElement("td");
-                            cell.textContent = value == null ? "-" : String(value);
-                            row.appendChild(cell);
-                        });
-                        tbody.appendChild(row);
-                    });
-                }
-                status.textContent = "Showing " + history.length + " history records (demo data).";
-            } catch (error) {
-                console.error("History loading failed:", error);
-                status.textContent = "History unavailable. Check whether FastAPI is running.";
-            }
-        }
-
-        // Format timestamps safely.
-
-        function formatLastSeen(timestamp) {
-            if (!timestamp) {
-                return "Unknown";
-            }
-
-            const date = new Date(timestamp);
-
-            if (Number.isNaN(date.getTime())) {
-                return "Unknown";
-            }
-
-            return date.toLocaleString();
-        }
-
-        // Search and filter events.
-
-        document.getElementById("search").addEventListener(
-            "input",
-            renderDevices
-        );
-
-        document.getElementById("statusFilter").addEventListener(
-            "change",
-            renderDevices
-        );
-
-        document.getElementById("refreshButton").addEventListener(
-            "click",
-            loadDevices
-        );
-
-        // Initial load and automatic refresh every five seconds.
-
-        loadDevices();
-        loadDeviceHistory();
-
-        setInterval(loadDevices, 5000);
-        setInterval(loadDeviceHistory, 10000);
-    </script>
-
-
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="reports">
+        <div class="secthead"><div><h2>Reports & export</h2><p>Export current device snapshot or recent history to CSV.</p></div></div>
+        <div class="grid2">
+          <div class="card"><h3 class="ctitle">Device inventory report</h3><p class="desc">Device ID, type, demo status, zone and last-seen timestamp.</p><br><button class="btn primary" id="exportDevices">⇩ Export devices CSV</button></div>
+          <div class="card"><h3 class="ctitle">Activity history report</h3><p class="desc">Recent events returned by the existing history endpoint.</p><br><button class="btn primary" id="exportHistory">⇩ Export history CSV</button></div>
+        </div>
+      </section>
+
+      <section class="section" id="system-health">
+        <div class="secthead"><div><h2>Admin & system health</h2><p>Basic reachability checks for local FastAPI endpoints.</p></div><button class="btn" id="runHealth">Run checks</button></div>
+        <div class="card">
+          <div class="list" id="healthList">
+            <div class="listrow"><div class="listicon">⌁</div><div class="listcopy"><strong>FastAPI backend</strong><small>/health</small></div><span class="listvalue" id="hApi">Checking</span></div>
+            <div class="listrow"><div class="listicon">▣</div><div class="listcopy"><strong>Device API</strong><small>/api/devices</small></div><span class="listvalue" id="hDevices">Checking</span></div>
+            <div class="listrow"><div class="listicon">◷</div><div class="listcopy"><strong>History API</strong><small>/api/history?limit=50</small></div><span class="listvalue" id="hHistory">Checking</span></div>
+            <div class="listrow"><div class="listicon">ⓘ</div><div class="listcopy"><strong>Real Wi-Fi integration</strong><small>Not configured in this prototype</small></div><span class="listvalue" style="color:var(--amber)">Not connected</span></div>
+          </div>
+          <p class="smallnote">Endpoint checks do not verify router access, authorization, real device discovery or precise indoor positioning.</p>
+        </div>
+      </section>
+
+      <footer class="footer">CampusPulse · Wi-Fi Assisted Smart Human Monitoring and Tracking System · Prototype dashboard</footer>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+const BASE = "http://127.0.0.1:8000";
+const DEV = BASE + "/api/devices";
+const HIST = BASE + "/api/history?limit=50";
+
+let devices = [];
+let historyRows = [];
+let busy = false;
+let selected = "ECE Department Section";
+const extra = [];
+
+const blocks = [
+  {
+    name: "ECE Department Section",
+    dept: "Illustrative ECE section",
+    icon: "⌁",
+    floor: "Ground Floor",
+    zones: ["ECE Block - Demo Zone A", "ECE Block - Demo Zone B", "Laboratory"]
+  },
+  {
+    name: "CSE / IT Section",
+    dept: "Illustrative computing section",
+    icon: "⌘",
+    floor: "Ground Floor",
+    zones: ["Computer Lab", "Classroom", "Corridor"]
+  },
+  {
+    name: "EEE / E&I Section",
+    dept: "Illustrative electrical section",
+    icon: "ϟ",
+    floor: "First Floor",
+    zones: ["Electronics Lab", "Classroom", "Corridor"]
+  },
+  {
+    name: "Library / Admin Section",
+    dept: "Illustrative shared facilities",
+    icon: "▤",
+    floor: "First Floor",
+    zones: ["Reading Area", "Office", "Common Area"]
+  }
+];
+
+const $ = id => document.getElementById(id);
+const norm = value => String(value ?? "").trim().toLowerCase();
+const conn = device => norm(device.status) === "connected";
+const status = device => conn(device) ? "connected" : "disconnected";
+const zone = device => String(device.zone || "Zone Unknown");
+const allBlocks = () => [...blocks, ...extra];
+
+function date(value) {
+  if (!value) return "Unknown";
+  const d = new Date(value);
+  return isNaN(d) ? "Unknown" : d.toLocaleString();
+}
+
+async function json(url, options) {
+  const response = await fetch(url, options);
+  let data = {};
+  try { data = await response.json(); } catch (error) {}
+  if (!response.ok) throw Error(data.detail || "HTTP " + response.status);
+  return data;
+}
+
+function notify(message) {
+  $("toast").textContent = message;
+  $("toast").style.display = "block";
+  setTimeout(() => $("toast").style.display = "none", 3000);
+}
+
+async function loadDevices() {
+  if (busy) return;
+  busy = true;
+  $("refresh").disabled = true;
+
+  try {
+    const data = await json(DEV);
+
+    if (!Array.isArray(data.devices)) {
+      throw Error("API response does not contain a devices array.");
+    }
+
+    devices = data.devices;
+    $("message").textContent =
+      "API refreshed " + new Date().toLocaleTimeString() +
+      " · demo records only";
+    $("message").style.color = "var(--muted)";
+    renderAll();
+  } catch (error) {
+    $("message").textContent =
+      "Backend unavailable. Start FastAPI and refresh. " + error.message;
+    $("message").style.color = "var(--red)";
+    $("topStatus").textContent = "API unavailable";
+    health("hApi", false);
+    health("hDevices", false);
+  } finally {
+    busy = false;
+    $("refresh").disabled = false;
+  }
+}
+
+async function loadHistory() {
+  try {
+    const data = await json(HIST);
+    historyRows = Array.isArray(data.history) ? data.history : [];
+    $("eventCount").textContent = historyRows.length;
+    $("historyStatus").textContent =
+      "Showing " + historyRows.length +
+      " SQLite history events (demo status changes).";
+    renderTimeline();
+    renderAlerts();
+    health("hHistory", true);
+  } catch (error) {
+    $("historyStatus").textContent =
+      "History API unavailable: " + error.message;
+    $("eventCount").textContent = "—";
+    health("hHistory", false);
+    renderAlerts();
+  }
+}
+
+function renderAll() {
+  const connected = devices.filter(conn).length;
+  $("total").textContent = devices.length;
+  $("connected").textContent = connected;
+  $("disconnected").textContent = devices.length - connected;
+  $("percent").textContent =
+    (devices.length ? Math.round(connected / devices.length * 100) : 0) +
+    "% of demo records";
+  $("topStatus").textContent = "API reachable";
+
+  renderDevices();
+  renderMap();
+  renderAnalytics();
+  renderAlerts();
+  renderManaged();
+}
+
+function fillSelect(id, label, values) {
+  const element = $(id);
+  const previous = element.value;
+  element.replaceChildren(new Option(label, "all"));
+
+  values.forEach(value => element.add(new Option(value, value)));
+  element.value = values.includes(previous) ? previous : "all";
+}
+
+function renderDevices() {
+  const search = norm($("search").value);
+  const statusFilter = $("statusFilter").value;
+  const typeFilter = $("typeFilter").value;
+  const zoneFilter = $("zoneFilter").value;
+
+  const rows = devices.filter(device =>
+    [device.device_id, device.device_type, device.zone]
+      .map(norm).join(" ").includes(search) &&
+    (statusFilter === "all" || status(device) === statusFilter) &&
+    (typeFilter === "all" ||
+      String(device.device_type || "Unknown") === typeFilter) &&
+    (zoneFilter === "all" || zone(device) === zoneFilter)
+  );
+
+  const table = $("deviceTable");
+  table.replaceChildren();
+
+  if (!rows.length) {
+    table.innerHTML =
+      '<tr><td colspan="6" class="empty">No matching devices found.</td></tr>';
+  }
+
+  rows.forEach(device => {
+    const row = document.createElement("tr");
+    const values = [
+      device.device_id || "Unknown",
+      device.device_type || "Unknown",
+      status(device),
+      zone(device),
+      date(device.last_seen)
+    ];
+
+    values.forEach((value, index) => {
+      const cell = document.createElement("td");
+
+      if (index === 0) {
+        const strong = document.createElement("strong");
+        strong.className = "deviceid";
+        strong.textContent = value;
+
+        const small = document.createElement("span");
+        small.className = "sub";
+        small.textContent = "Sample identifier";
+        cell.append(strong, small);
+      } else if (index === 2) {
+        const badge = document.createElement("span");
+        badge.className = "badge " + value;
+        badge.textContent = value;
+        cell.append(badge);
+      } else {
+        cell.textContent = value;
+      }
+
+      row.append(cell);
+    });
+
+    const actionCell = document.createElement("td");
+    const button = document.createElement("button");
+    button.className = "actionbtn " + (conn(device) ? "disconnect" : "connect");
+    button.textContent = conn(device) ? "Disconnect" : "Connect";
+    button.addEventListener("click", () => updateStatus(device, button));
+    actionCell.append(button);
+    row.append(actionCell);
+    table.append(row);
+  });
+
+  const types = [...new Set(
+    devices.map(device => String(device.device_type || "Unknown"))
+  )].sort();
+
+  const zones = [...new Set(devices.map(zone))].sort();
+
+  fillSelect("typeFilter", "All device types", types);
+  fillSelect("zoneFilter", "All zones", zones);
+}
+
+async function updateStatus(device, button) {
+  button.disabled = true;
+
+  const nextStatus = conn(device) ? "Disconnected" : "Connected";
+
+  try {
+    await json(DEV + "/" + encodeURIComponent(device.device_id), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: nextStatus,
+        zone: device.zone || "Unknown"
+      })
+    });
+
+    notify(device.device_id + " status changed to " + nextStatus);
+    await loadDevices();
+    await loadHistory();
+  } catch (error) {
+    notify("Update failed: " + error.message);
+    button.disabled = false;
+  }
+}
+
+function renderMap() {
+  const floor = $("floor").value;
+  $("floorLabel").textContent = floor.toUpperCase();
+
+  const host = $("buildings");
+  host.replaceChildren();
+
+  const sections = allBlocks().filter(block => block.floor === floor);
+
+  if (!sections.length) {
+    host.innerHTML =
+      '<div class="empty">No sections on this floor. Add one in Block & floor setup.</div>';
+    $("zoneDetail").innerHTML =
+      '<div class="empty">No section selected on this floor.</div>';
+    return;
+  }
+
+  sections.forEach(block => {
+    const matching = devices.filter(device =>
+      conn(device) &&
+      block.zones.some(sampleZone =>
+        norm(zone(device)).includes(norm(sampleZone)) ||
+        norm(sampleZone).includes(norm(zone(device)))
+      )
+    ).length;
+
+    const button = document.createElement("button");
+    button.className =
+      "building" + (selected === block.name ? " selected" : "");
+
+    const top = document.createElement("div");
+    top.className = "btop";
+
+    const icon = document.createElement("span");
+    icon.className = "bicon";
+    icon.textContent = block.icon || "⌂";
+
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = matching + " active";
+
+    top.append(icon, count);
+
+    const name = document.createElement("div");
+    name.className = "bname";
+    name.textContent = block.name;
+
+    const meta = document.createElement("div");
+    meta.className = "bmeta";
+    meta.textContent = block.dept + " · " + block.zones.length + " sample zones";
+
+    button.append(top, name, meta);
+
+    button.onclick = () => {
+      selected = block.name;
+      renderMap();
+    };
+
+    host.append(button);
+  });
+
+  renderZoneDetail();
+}
+
+function renderZoneDetail() {
+  const host = $("zoneDetail");
+  host.replaceChildren();
+
+  const block = allBlocks().find(item =>
+    item.name === selected && item.floor === $("floor").value
+  );
+
+  if (!block) {
+    host.innerHTML = '<div class="empty">Select a section on the map.</div>';
+    return;
+  }
+
+  const heading = document.createElement("strong");
+  heading.textContent = block.name;
+  host.append(heading);
+
+  block.zones.forEach(sampleZone => {
+    const matching = devices.filter(device =>
+      norm(zone(device)) === norm(sampleZone)
+    );
+
+    const row = document.createElement("div");
+    row.className = "zone";
+
+    const info = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = sampleZone;
+
+    const small = document.createElement("small");
+    small.textContent = matching.length + " matching demo record(s) · " +
+      matching.filter(conn).length + " connected";
+
+    info.append(name, small);
+
+    const button = document.createElement("button");
+    button.textContent = "View devices";
+
+    button.onclick = () => {
+      $("search").value = sampleZone;
+      $("zoneFilter").value = "all";
+      renderDevices();
+      $("devices").scrollIntoView({ behavior: "smooth" });
+    };
+
+    row.append(info, button);
+    host.append(row);
+  });
+
+  const note = document.createElement("p");
+  note.className = "smallnote";
+  note.textContent =
+    "Sample zone labels do not confirm a physical device location.";
+  host.append(note);
+}
+
+function renderAnalytics() {
+  const connected = devices.filter(conn).length;
+  const disconnected = devices.length - connected;
+  const chart = $("chart");
+  chart.replaceChildren();
+
+  [
+    { label: "Connected", count: connected, className: "" },
+    { label: "Disconnected", count: disconnected, className: "red" }
+  ].forEach(item => {
+    const group = document.createElement("div");
+    group.className = "bargrp";
+
+    const number = document.createElement("small");
+    number.textContent = item.count;
+
+    const bar = document.createElement("div");
+    bar.className = "bar " + item.className;
+    bar.style.height =
+      (devices.length ? item.count / devices.length * 100 : 0) + "%";
+
+    const label = document.createElement("small");
+    label.textContent = item.label;
+
+    group.append(number, bar, label);
+    chart.append(group);
+  });
+
+  $("chartSummary").textContent =
+    connected + " connected · " + disconnected + " disconnected";
+
+  const counts = {};
+  devices.forEach(device => {
+    counts[zone(device)] = (counts[zone(device)] || 0) + 1;
+  });
+
+  const host = $("zoneAnalytics");
+  host.replaceChildren();
+
+  Object.entries(counts).forEach(([name, count]) => {
+    const row = document.createElement("div");
+    row.className = "listrow";
+
+    const icon = document.createElement("span");
+    icon.className = "listicon";
+    icon.textContent = "⌖";
+
+    const copy = document.createElement("div");
+    copy.className = "listcopy";
+
+    const strong = document.createElement("strong");
+    strong.textContent = name;
+
+    const small = document.createElement("small");
+    small.textContent = count + " sample record(s)";
+
+    const value = document.createElement("span");
+    value.className = "listvalue";
+    value.textContent =
+      Math.round(count / Math.max(devices.length, 1) * 100) + "%";
+
+    copy.append(strong, small);
+    row.append(icon, copy, value);
+    host.append(row);
+  });
+}
+
+function renderAlerts() {
+  const host = $("alertList");
+  host.replaceChildren();
+
+  const alerts = devices
+    .filter(device => !conn(device))
+    .map(device => [
+      "Demo device disconnected",
+      (device.device_id || "Unknown") + " · " + zone(device) +
+      ". Sample status only, not a real network alert."
+    ]);
+
+  if (!devices.length) {
+    alerts.push([
+      "Device data unavailable",
+      "No device records are currently available. Check FastAPI."
+    ]);
+  }
+
+  if (devices.length && alerts.length === 0) {
+    alerts.push([
+      "No disconnected demo devices",
+      "All sample records report connected. This is not a real network assessment."
+    ]);
+  }
+
+  $("alertCount").textContent = alerts.length + " notices";
+
+  alerts.forEach(alert => {
+    const row = document.createElement("div");
+    row.className = "listrow";
+
+    const icon = document.createElement("span");
+    icon.className = "listicon";
+    icon.style.background = "#fff6e5";
+    icon.style.color = "#a76608";
+    icon.textContent = "!";
+
+    const copy = document.createElement("div");
+    copy.className = "listcopy";
+
+    const strong = document.createElement("strong");
+    strong.textContent = alert[0];
+
+    const small = document.createElement("small");
+    small.textContent = alert[1];
+
+    copy.append(strong, small);
+    row.append(icon, copy);
+    host.append(row);
+  });
+}
+
+function renderTimeline() {
+  const host = $("timeline");
+  host.replaceChildren();
+
+  if (!historyRows.length) {
+    host.innerHTML =
+      '<div class="empty">No history events yet. Change a demo device status to create one.</div>';
+    return;
+  }
+
+  historyRows.slice(0, 20).forEach(event => {
+    const row = document.createElement("div");
+    row.className = "event";
+
+    const dot = document.createElement("span");
+    dot.className = "eventdot";
+
+    const copy = document.createElement("div");
+    const strong = document.createElement("strong");
+    strong.textContent =
+      (event.event_type || "Status event") + " · " +
+      (event.device_id || "Unknown device");
+
+    const small = document.createElement("small");
+    small.textContent =
+      "Zone: " + (event.zone || "Unknown") + " · Demo history record";
+
+    const time = document.createElement("time");
+    time.textContent = date(event.event_time);
+
+    copy.append(strong, small);
+    row.append(dot, copy, time);
+    host.append(row);
+  });
+}
+
+function renderManaged() {
+  const host = $("managedBlocks");
+  host.replaceChildren();
+
+  allBlocks().forEach(block => {
+    const row = document.createElement("div");
+    row.className = "listrow";
+
+    const icon = document.createElement("span");
+    icon.className = "listicon";
+    icon.textContent = "⌂";
+
+    const copy = document.createElement("div");
+    copy.className = "listcopy";
+
+    const strong = document.createElement("strong");
+    strong.textContent = block.name;
+
+    const small = document.createElement("small");
+    small.textContent =
+      block.floor + " · " + block.zones.length + " illustrative zones";
+
+    const value = document.createElement("span");
+    value.className = "listvalue";
+    value.textContent = extra.includes(block) ? "Local" : "Sample";
+
+    copy.append(strong, small);
+    row.append(icon, copy, value);
+    host.append(row);
+  });
+}
+
+function health(id, isOnline) {
+  const element = $(id);
+  element.textContent = isOnline ? "Online" : "Offline";
+  element.style.color = isOnline ? "var(--green)" : "var(--red)";
+}
+
+async function runHealth() {
+  try {
+    await json(BASE + "/health");
+    health("hApi", true);
+  } catch (error) {
+    health("hApi", false);
+  }
+
+  try {
+    await json(DEV);
+    health("hDevices", true);
+  } catch (error) {
+    health("hDevices", false);
+  }
+
+  try {
+    await json(HIST);
+    health("hHistory", true);
+  } catch (error) {
+    health("hHistory", false);
+  }
+}
+
+function csvValue(value) {
+  return '"' + String(value ?? "").replace(/"/g, '""') + '"';
+}
+
+function downloadCSV(filename, rows) {
+  if (!rows.length) {
+    notify("No records to export");
+    return;
+  }
+
+  const content = "\ufeff" +
+    rows.map(row => row.map(csvValue).join(",")).join("\r\n");
+
+  const blob = new Blob([content], {
+    type: "text/csv;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  link.click();
+
+  URL.revokeObjectURL(url);
+  notify("Export started: " + filename);
+}
+
+function exportDevices() {
+  downloadCSV("campuspulse-demo-devices.csv", [
+    ["Device ID", "Device Type", "Status", "Sample Zone", "Last Seen"],
+    ...devices.map(device => [
+      device.device_id,
+      device.device_type,
+      device.status,
+      device.zone,
+      device.last_seen
+    ])
+  ]);
+}
+
+function exportHistory() {
+  downloadCSV("campuspulse-demo-history.csv", [
+    ["Device ID", "Event Type", "Zone", "Event Time"],
+    ...historyRows.map(event => [
+      event.device_id,
+      event.event_type,
+      event.zone,
+      event.event_time
+    ])
+  ]);
+}
+
+$("search").addEventListener("input", renderDevices);
+
+["statusFilter", "typeFilter", "zoneFilter"].forEach(id => {
+  $(id).addEventListener("change", renderDevices);
+});
+
+$("clearFilters").onclick = () => {
+  $("search").value = "";
+  $("statusFilter").value = "all";
+  $("typeFilter").value = "all";
+  $("zoneFilter").value = "all";
+  renderDevices();
+};
+
+$("refresh").onclick = async () => {
+  await loadDevices();
+  await loadHistory();
+  await runHealth();
+};
+
+$("refreshHistory").onclick = loadHistory;
+$("runHealth").onclick = runHealth;
+$("exportDevices").onclick = exportDevices;
+$("exportHistory").onclick = exportHistory;
+$("exportTop").onclick = exportDevices;
+
+$("floor").onchange = () => {
+  selected = "";
+  renderMap();
+};
+
+$("clearMap").onclick = () => {
+  selected = "";
+  renderMap();
+};
+
+$("addBlock").onclick = () => {
+  const name = $("newBlock").value.trim();
+  const department = $("newDept").value.trim();
+  const floor = $("newFloor").value;
+
+  if (!name) {
+    notify("Enter a section label");
+    return;
+  }
+
+  if (allBlocks().some(block => norm(block.name) === norm(name))) {
+    notify("That section already exists");
+    return;
+  }
+
+  extra.push({
+    name,
+    dept: department || "User-created illustrative section",
+    icon: "⌂",
+    floor,
+    zones: ["Sample Zone 1", "Sample Zone 2"]
+  });
+
+  selected = name;
+  $("floor").value = floor;
+  $("newBlock").value = "";
+  $("newDept").value = "";
+
+  renderMap();
+  renderManaged();
+  notify("Added local demo section; not saved to backend");
+};
+
+document.querySelectorAll(".nav a").forEach(link => {
+  link.onclick = () => {
+    document.querySelectorAll(".nav a").forEach(item =>
+      item.classList.remove("active")
+    );
+    link.classList.add("active");
+  };
+});
+
+loadDevices();
+loadHistory();
+runHealth();
+
+setInterval(loadDevices, 5000);
+setInterval(loadHistory, 15000);
+</script>
 </body>
 </html>
